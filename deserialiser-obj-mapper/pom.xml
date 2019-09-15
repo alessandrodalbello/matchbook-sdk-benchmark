@@ -15,24 +15,64 @@
 
     <properties>
         <!-- Matchbook SDK -->
-        <mb.sdk-version>0.1.0.2019.09.15-OBJ-SNAPSHOT</mb.sdk-version>
+        <mb.sdk.version>0.1.0.2019.09.15-OBJ-SNAPSHOT</mb.sdk.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <artifactId>matchbook-sdk-core</artifactId>
             <groupId>com.matchbook</groupId>
+            <artifactId>matchbook-sdk-core</artifactId>
             <version>${mb.sdk.version}</version>
-            <scope>system</scope>
-            <systemPath>${module.basedir}/src/main/resources/matchbook-sdk-core-${mb.sdk.version}.jar</systemPath>
         </dependency>
         <dependency>
-            <artifactId>matchbook-sdk-rest</artifactId>
             <groupId>com.matchbook</groupId>
+            <artifactId>matchbook-sdk-rest</artifactId>
             <version>${mb.sdk.version}</version>
-            <scope>system</scope>
-            <systemPath>${module.basedir}/src/main/resources/matchbook-sdk-rest-${mb.sdk.version}.jar</systemPath>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>${maven.install.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>install-matchbook-sdk-core</id>
+                        <phase>clean</phase>
+                        <configuration>
+                            <file>${project.basedir}/libs/matchbook-sdk-core-${mb.sdk.version}.jar</file>
+                            <repositoryLayout>default</repositoryLayout>
+                            <groupId>com.matchbook</groupId>
+                            <artifactId>matchbook-sdk-core</artifactId>
+                            <version>${mb.sdk.version}</version>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>install-matchbook-sdk-rest</id>
+                        <phase>clean</phase>
+                        <configuration>
+                            <file>${project.basedir}/libs/matchbook-sdk-rest-${mb.sdk.version}.jar</file>
+                            <repositoryLayout>default</repositoryLayout>
+                            <groupId>com.matchbook</groupId>
+                            <artifactId>matchbook-sdk-rest</artifactId>
+                            <version>${mb.sdk.version}</version>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
