@@ -8,8 +8,14 @@
     <artifactId>matchbook-sdk-benchmark</artifactId>
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
+
     <description>Matchbook SDK Benchmark</description>
     <url>https://github.com/alessandrodalbello/matchbook-sdk-benchmark</url>
+
+    <modules>
+        <module>deserialiser-obj-mapper</module>
+        <module>deserialiser-stream</module>
+    </modules>
 
     <issueManagement>
         <url>https://github.com/alessandrodalbello/matchbook-sdk-benchmark/issues</url>

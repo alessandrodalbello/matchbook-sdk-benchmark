@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.alessandrodalbello</groupId>
+        <artifactId>matchbook-sdk-benchmark</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>deserialiser-stream</artifactId>
+    <packaging>jar</packaging>
+
+    <properties>
+        <!-- Matchbook SDK -->
+        <mb.sdk-version>0.1.0.2019.09.15-STREAM-SNAPSHOT</mb.sdk-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <artifactId>matchbook-sdk-core</artifactId>
+            <groupId>com.matchbook</groupId>
+            <version>${mb.sdk.version}</version>
+            <scope>system</scope>
+            <systemPath>${module.basedir}/src/main/resources/matchbook-sdk-core-${mb.sdk.version}.jar</systemPath>
+        </dependency>
+        <dependency>
+            <artifactId>matchbook-sdk-rest</artifactId>
+            <groupId>com.matchbook</groupId>
+            <version>${mb.sdk.version}</version>
+            <scope>system</scope>
+            <systemPath>${module.basedir}/src/main/resources/matchbook-sdk-rest-${mb.sdk.version}.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+</project>
