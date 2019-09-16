@@ -19,6 +19,7 @@
     </properties>
 
     <dependencies>
+        <!-- Matchbook SDK -->
         <dependency>
             <groupId>com.matchbook</groupId>
             <artifactId>matchbook-sdk-core</artifactId>
@@ -28,6 +29,16 @@
             <groupId>com.matchbook</groupId>
             <artifactId>matchbook-sdk-rest</artifactId>
             <version>${mb.sdk.version}</version>
+        </dependency>
+
+        <!-- Java Microbenchmark -->
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
         </dependency>
     </dependencies>
 
