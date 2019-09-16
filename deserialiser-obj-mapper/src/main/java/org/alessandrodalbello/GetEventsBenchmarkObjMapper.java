@@ -5,6 +5,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 
 import com.matchbook.sdk.core.StreamObserver;
 import com.matchbook.sdk.core.exceptions.MatchbookSDKException;
@@ -31,7 +32,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @OutputTimeUnit(MILLISECONDS)
 @Warmup(iterations = 1, time = 10, timeUnit = SECONDS)
 @Measurement(iterations = 1, time = 10, timeUnit = SECONDS)
-public class GetEventsBenchmark {
+public class GetEventsBenchmarkObjMapper {
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
@@ -41,23 +42,10 @@ public class GetEventsBenchmark {
                 .sportIds(Collections.singleton(9L))
                 .includeEventParticipants(false)
                 .build();
-        executionPlan.eventsClient.getEvents(eventsRequest, new StreamObserver<Event>() {
+        WaitingStreamObserver<Event> waitingStreamObserver = new WaitingStreamObserver<>();
+        executionPlan.eventsClient.getEvents(eventsRequest, waitingStreamObserver);
 
-            @Override
-            public void onNext(Event event) {
-                Objects.requireNonNull(event);
-            }
-
-            @Override
-            public void onCompleted() {
-                // do nothing
-            }
-
-            @Override
-            public <E extends MatchbookSDKException> void onError(E exception) {
-                throw exception;
-            }
-        });
+        waitingStreamObserver.awaitResult(10);
     }
 
     @State(Scope.Benchmark)
@@ -70,6 +58,44 @@ public class GetEventsBenchmark {
             ClientConfig clientConfig = new ClientConfig.Builder("anonymous".toCharArray(), null).build();
             ConnectionManager connectionManager = new ConnectionManager.Builder(clientConfig).build();
             eventsClient = new EventsClientRest(connectionManager);
+        }
+    }
+
+    private static class WaitingStreamObserver<T> implements StreamObserver<T> {
+
+        private final CountDownLatch countDownLatch;
+
+        private MatchbookSDKException matchbookSDKException;
+
+        private WaitingStreamObserver() {
+            countDownLatch = new CountDownLatch(1);
+        }
+
+        private void awaitResult(int timeoutSeconds) {
+            try {
+                countDownLatch.await(timeoutSeconds, SECONDS);
+                if (matchbookSDKException != null) {
+                    throw new RuntimeException(matchbookSDKException);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void onNext(T entity) {
+            Objects.requireNonNull(entity);
+        }
+
+        @Override
+        public void onCompleted() {
+            countDownLatch.countDown();
+        }
+
+        @Override
+        public <E extends MatchbookSDKException> void onError(E exception) {
+            matchbookSDKException = exception;
+            countDownLatch.countDown();
         }
     }
 
