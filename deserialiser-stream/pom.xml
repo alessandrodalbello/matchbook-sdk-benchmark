@@ -135,7 +135,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.org.alessandrodalbello.BenchmarkStreamMain</mainClass>
+                            <mainClass>org.org.alessandrodalbello.GetEventsBenchmarkStream</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

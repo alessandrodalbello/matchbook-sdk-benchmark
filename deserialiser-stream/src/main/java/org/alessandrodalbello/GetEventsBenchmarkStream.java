@@ -15,8 +15,10 @@ import com.matchbook.sdk.rest.EventsClient;
 import com.matchbook.sdk.rest.EventsClientRest;
 import com.matchbook.sdk.rest.dtos.events.Event;
 import com.matchbook.sdk.rest.dtos.events.EventsRequest;
+import org.openjdk.jmh.Main;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
@@ -25,24 +27,26 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
 
 /**
  * Benchmark of Matchbook SDK version that uses a Jackson deserialisation stream-based implementation.
  */
 @OutputTimeUnit(MILLISECONDS)
-@Warmup(iterations = 1, time = 10, timeUnit = SECONDS)
-@Measurement(iterations = 1, time = 10, timeUnit = SECONDS)
+@Fork(value = 1, warmups = 0)
+@Warmup(iterations = 0)
+@Measurement(iterations = 1)
 public class GetEventsBenchmarkStream {
 
     @Benchmark
     @BenchmarkMode(Mode.Throughput)
-    public void getOneTennisEvent(ExecutionPlan executionPlan) {
+    public void getOneTennisEvent(ExecutionPlan executionPlan, Blackhole blackhole) {
         EventsRequest eventsRequest = new EventsRequest.Builder()
                 .perPage(1)
                 .sportIds(Collections.singleton(9L))
                 .includeEventParticipants(false)
                 .build();
-        WaitingStreamObserver<Event> waitingStreamObserver = new WaitingStreamObserver<>();
+        WaitingStreamObserver<Event> waitingStreamObserver = new WaitingStreamObserver<>(blackhole);
         executionPlan.eventsClient.getEvents(eventsRequest, waitingStreamObserver);
 
         waitingStreamObserver.awaitResult(10);
@@ -63,11 +67,13 @@ public class GetEventsBenchmarkStream {
 
     private static class WaitingStreamObserver<T> implements StreamObserver<T> {
 
+        private final Blackhole blackhole;
         private final CountDownLatch countDownLatch;
 
         private MatchbookSDKException matchbookSDKException;
 
-        private WaitingStreamObserver() {
+        private WaitingStreamObserver(Blackhole blackhole) {
+            this.blackhole = blackhole;
             countDownLatch = new CountDownLatch(1);
         }
 
@@ -85,6 +91,7 @@ public class GetEventsBenchmarkStream {
         @Override
         public void onNext(T entity) {
             Objects.requireNonNull(entity);
+            blackhole.consume(entity);
         }
 
         @Override
@@ -97,6 +104,10 @@ public class GetEventsBenchmarkStream {
             matchbookSDKException = exception;
             countDownLatch.countDown();
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        Main.main(args);
     }
 
 }

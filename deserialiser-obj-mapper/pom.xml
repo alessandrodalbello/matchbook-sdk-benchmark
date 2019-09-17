@@ -135,7 +135,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.alessandrodalbello.BenchmarkObjMapperMain</mainClass>
+                            <mainClass>org.alessandrodalbello.GetEventsBenchmarkObjMapper</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
