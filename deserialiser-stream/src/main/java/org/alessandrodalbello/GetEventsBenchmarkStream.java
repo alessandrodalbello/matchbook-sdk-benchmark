@@ -51,7 +51,7 @@ public class GetEventsBenchmarkStream {
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK_200)
                         .withHeader("Content-Type", "application/json")
-                        .withBodyFile("files/mock-responses/50_events_with_participants_and_prices.json")));
+                        .withBodyFile("50_events_with_participants_and_prices.json")));
 
         EventsRequest eventsRequest = new EventsRequest.Builder()
                 .includeEventParticipants(true)
