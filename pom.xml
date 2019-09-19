@@ -13,6 +13,7 @@
     <url>https://github.com/alessandrodalbello/matchbook-sdk-benchmark</url>
 
     <modules>
+        <module>deserialiser-common</module>
         <module>deserialiser-obj-mapper</module>
         <module>deserialiser-stream</module>
     </modules>
