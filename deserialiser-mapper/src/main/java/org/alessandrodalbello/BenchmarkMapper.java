@@ -3,6 +3,8 @@ package org.alessandrodalbello;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.concurrent.CountDownLatch;
@@ -19,18 +21,20 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
 @Fork(value = 1, warmups = 0)
 @Warmup(iterations = 2, time = 5, timeUnit = SECONDS)
-@Measurement(iterations = 2, time = 5, timeUnit = SECONDS)
-@OutputTimeUnit(SECONDS)
-public class BenchmarkObjMapper {
+@Measurement(iterations = 5, time = 5, timeUnit = SECONDS)
+@Timeout(time = 1, timeUnit = MINUTES)
+@OutputTimeUnit(MILLISECONDS)
+public class BenchmarkMapper {
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    public void getSingleEvent(ExecutionPlanObjMapper executionPlan, Blackhole blackhole) {
+    @BenchmarkMode(Mode.AverageTime)
+    public void getSingleEvent(ExecutionPlanMapper executionPlan, Blackhole blackhole) {
         executionPlan.wireMockServer.stubFor(get(urlPathEqualTo("/edge/rest/events/1227568266270017"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK_200)
@@ -49,8 +53,8 @@ public class BenchmarkObjMapper {
     }
 
     @Benchmark
-    @BenchmarkMode(Mode.Throughput)
-    public void get20EventsWithoutPrices(ExecutionPlanObjMapper executionPlan, Blackhole blackhole) {
+    @BenchmarkMode(Mode.AverageTime)
+    public void get20EventsWithoutPrices(ExecutionPlanMapper executionPlan, Blackhole blackhole) {
         executionPlan.wireMockServer.stubFor(get(urlPathEqualTo("/edge/rest/events"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK_200)

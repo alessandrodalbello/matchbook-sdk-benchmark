@@ -4,7 +4,7 @@
 # Compiled class files #
 *.class
 # Sub-modules resources #
-deserialiser-obj-mapper/src/main/resources/**
+deserialiser-mapper/src/main/resources/**
 deserialiser-stream/src/main/resources/**
 
 # Log files #

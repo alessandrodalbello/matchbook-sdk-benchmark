@@ -10,12 +10,12 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>deserialiser-obj-mapper</artifactId>
+    <artifactId>deserialiser-mapper</artifactId>
     <packaging>jar</packaging>
 
     <properties>
         <!-- Matchbook SDK -->
-        <mb.sdk.version>0.1.0.2019.09.15-OBJ-SNAPSHOT</mb.sdk.version>
+        <mb.sdk.version>0.1.0.2019.09.15-MAPPER-SNAPSHOT</mb.sdk.version>
     </properties>
 
     <dependencies>
@@ -193,7 +193,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.alessandrodalbello.BenchmarkRunnerObjMapper</mainClass>
+                            <mainClass>org.alessandrodalbello.BenchmarkRunnerMapper</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

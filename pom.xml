@@ -14,7 +14,7 @@
 
     <modules>
         <module>deserialiser-common</module>
-        <module>deserialiser-obj-mapper</module>
+        <module>deserialiser-mapper</module>
         <module>deserialiser-stream</module>
     </modules>
 
