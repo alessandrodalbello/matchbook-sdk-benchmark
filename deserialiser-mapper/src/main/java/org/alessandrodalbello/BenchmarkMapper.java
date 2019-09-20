@@ -3,8 +3,8 @@ package org.alessandrodalbello;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.concurrent.CountDownLatch;
@@ -23,86 +23,125 @@ import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
-import org.openjdk.jmh.infra.Blackhole;
 
 @Fork(value = 1, warmups = 0)
-@Warmup(iterations = 2, time = 5, timeUnit = SECONDS)
-@Measurement(iterations = 5, time = 5, timeUnit = SECONDS)
-@Timeout(time = 1, timeUnit = MINUTES)
+@Warmup(iterations = 3, time = 5, timeUnit = SECONDS)
+@Measurement(iterations = 10, time = 5, timeUnit = SECONDS)
+@Timeout(time = 30, timeUnit = SECONDS)
 @OutputTimeUnit(MILLISECONDS)
 public class BenchmarkMapper {
 
     @Benchmark
     @BenchmarkMode(Mode.AverageTime)
-    public void getSingleEvent(ExecutionPlanMapper executionPlan, Blackhole blackhole) {
-        executionPlan.wireMockServer.stubFor(get(urlPathEqualTo("/edge/rest/events/1227568266270017"))
+    public void get20EventsWithoutPrices_OverallTime(BenchmarkStateMapper benchmarkState) {
+        getEvents(benchmarkState, "20_events_without_prices.json", 2, true);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void get20EventsWithoutPrices_TimeToFirst(BenchmarkStateMapper benchmarkState) {
+        getEvents(benchmarkState, "20_events_without_prices.json", 2, false);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void get20EventsWithPrices_OverallTime(BenchmarkStateMapper benchmarkState) {
+        getEvents(benchmarkState, "20_events_with_prices.json", 2, true);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void get20EventsWithPrices_TimeToFirst(BenchmarkStateMapper benchmarkState) {
+        getEvents(benchmarkState, "20_events_with_prices.json", 2, false);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void get50EventsWithParticipantsAndPrices_OverallTime(BenchmarkStateMapper benchmarkState) {
+        getEvents(benchmarkState, "50_events_with_participants_and_prices.json", 3, true);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void get50EventsWithParticipantsAndPrices_TimeToFirst(BenchmarkStateMapper benchmarkState) {
+        getEvents(benchmarkState, "50_events_with_participants_and_prices.json", 3, false);
+    }
+
+    private void getEvents(BenchmarkStateMapper benchmarkState, String responseFile, int waitTimeout, boolean waitCompletion) {
+        benchmarkState.wireMockServer.stubFor(get(urlPathEqualTo("/edge/rest/events"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK_200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile(responseFile)));
+
+        EventsRequest eventsRequest = new EventsRequest.Builder().build();
+        WaitStreamObserver streamObserver = new WaitStreamObserver(waitCompletion);
+        benchmarkState.eventsClient.getEvents(eventsRequest, streamObserver);
+
+        streamObserver.await(waitTimeout);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void getSingleEvent_OverallTime(BenchmarkStateMapper benchmarkState) {
+        getEvent(benchmarkState, true);
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void getSingleEvent_TimeToFirst(BenchmarkStateMapper benchmarkState) {
+        getEvent(benchmarkState, false);
+    }
+
+    private void getEvent(BenchmarkStateMapper benchmarkState, boolean waitCompletion) {
+        benchmarkState.wireMockServer.stubFor(get(urlPathMatching("/edge/rest/events/\\d+"))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK_200)
                         .withHeader("Content-Type", "application/json")
                         .withBodyFile("single_event.json")));
 
         EventRequest eventRequest = new EventRequest.Builder(1227568266270017L).build();
-        WaitingStreamObserver streamObserver = new WaitingStreamObserver(blackhole);
-        executionPlan.eventsClient.getEvent(eventRequest, streamObserver);
-        try {
-            streamObserver.awaitResult(2);
-        } finally {
-            blackhole.consume(eventRequest);
-            blackhole.consume(streamObserver);
-        }
+        WaitStreamObserver streamObserver = new WaitStreamObserver(waitCompletion);
+        benchmarkState.eventsClient.getEvent(eventRequest, streamObserver);
+
+        streamObserver.await(1);
     }
 
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    public void get20EventsWithoutPrices(ExecutionPlanMapper executionPlan, Blackhole blackhole) {
-        executionPlan.wireMockServer.stubFor(get(urlPathEqualTo("/edge/rest/events"))
-                .willReturn(aResponse()
-                        .withStatus(HttpStatus.OK_200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBodyFile("20_events_without_prices.json")));
+    private static class WaitStreamObserver implements StreamObserver<Event> {
 
-        EventsRequest eventsRequest = new EventsRequest.Builder().build();
-        WaitingStreamObserver streamObserver = new WaitingStreamObserver(blackhole);
-        executionPlan.eventsClient.getEvents(eventsRequest, streamObserver);
-        try {
-            streamObserver.awaitResult(2);
-        } finally {
-            blackhole.consume(eventsRequest);
-            blackhole.consume(streamObserver);
-        }
-    }
-
-    private static class WaitingStreamObserver implements StreamObserver<Event> {
-
-        private final Blackhole blackhole;
+        private final boolean waitCompletion;
         private final CountDownLatch countDownLatch;
 
         private Exception matchbookSDKException;
 
-        private WaitingStreamObserver(Blackhole blackhole) {
-            this.blackhole = blackhole;
+        private WaitStreamObserver(boolean waitCompletion) {
+            this.waitCompletion = waitCompletion;
             countDownLatch = new CountDownLatch(1);
         }
 
-        private void awaitResult(int timeoutSeconds) {
+        private void await(int waitTimeout) {
             try {
-                countDownLatch.await(timeoutSeconds, SECONDS);
-                if (matchbookSDKException != null) {
-                    throw new RuntimeException(matchbookSDKException);
-                }
+                countDownLatch.await(waitTimeout, SECONDS);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
+            }
+            if (matchbookSDKException != null) {
+                throw new RuntimeException(matchbookSDKException);
             }
         }
 
         @Override
         public void onNext(Event event) {
-            blackhole.consume(event);
+            if (!waitCompletion) {
+                countDownLatch.countDown();
+            }
         }
 
         @Override
         public void onCompleted() {
-            countDownLatch.countDown();
+            if (waitCompletion) {
+                countDownLatch.countDown();
+            }
         }
 
         @Override

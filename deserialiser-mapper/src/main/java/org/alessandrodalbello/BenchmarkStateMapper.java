@@ -13,7 +13,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 
 @State(Scope.Benchmark)
-public class ExecutionPlanStream {
+public class BenchmarkStateMapper {
 
     WireMockServer wireMockServer;
     EventsClient eventsClient;
@@ -22,7 +22,7 @@ public class ExecutionPlanStream {
     public void setUp() {
         WireMockConfiguration wireMockServerConfiguration = WireMockConfiguration.wireMockConfig()
                 .usingFilesUnderDirectory("src/main/resources")
-//                    .disableRequestJournal()
+                .disableRequestJournal()
                 .port(8080);
         wireMockServer = new WireMockServer(wireMockServerConfiguration);
         wireMockServer.start();
@@ -39,7 +39,6 @@ public class ExecutionPlanStream {
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        wireMockServer.stop();
         wireMockServer.shutdown();
     }
 
