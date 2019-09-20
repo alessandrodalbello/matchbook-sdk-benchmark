@@ -38,6 +38,22 @@
             <version>${mb.sdk.version}</version>
         </dependency>
 
+        <!-- Java Microbenchmark -->
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+        </dependency>
+
+        <!-- Wiremock -->
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+        </dependency>
+
         <!-- Jackson -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -121,6 +137,66 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <!-- Copy MB mock responses -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-matchbook-mock-responses</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/src/main/resources/__files</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.parent.basedir}/files</directory>
+                                    <includes>
+                                        <include>**/*.json</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Include common mock MB responses -->
+            <!--
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-remote-resources-plugin</artifactId>
+                <configuration>
+                    <resourceBundles>
+                        <resourceBundle>org.alessandrodalbello:deserialiser-common:${project.version}</resourceBundle>
+                    </resourceBundles>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>process-mb-responses</id>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            -->
+
+            <!-- Create JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.alessandrodalbello.BenchmarkRunnerStream</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
             </plugin>
         </plugins>
     </build>

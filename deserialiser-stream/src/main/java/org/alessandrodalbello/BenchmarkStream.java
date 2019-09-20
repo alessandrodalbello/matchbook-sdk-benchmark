@@ -1,0 +1,91 @@
+package org.alessandrodalbello;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
+import java.util.concurrent.CountDownLatch;
+
+import com.matchbook.sdk.core.StreamObserver;
+import com.matchbook.sdk.core.exceptions.MatchbookSDKException;
+import com.matchbook.sdk.rest.dtos.events.Event;
+import com.matchbook.sdk.rest.dtos.events.EventRequest;
+import org.eclipse.jetty.http.HttpStatus;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Warmup;
+import org.openjdk.jmh.infra.Blackhole;
+
+@Fork(value = 1, warmups = 0)
+@Warmup(iterations = 0)
+@Measurement(iterations = 1)
+@OutputTimeUnit(MILLISECONDS)
+public class BenchmarkStream {
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public void getSingleEvent(ExecutionPlanStream executionPlan, Blackhole blackhole) {
+        executionPlan.wireMockServer.stubFor(get(urlPathEqualTo("/edge/rest/events/1227568266270017"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK_200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("single_event.json")));
+
+        EventRequest eventRequest = new EventRequest.Builder(1227568266270017L).build();
+        WaitingStreamObserver streamObserver = new WaitingStreamObserver(blackhole);
+        executionPlan.eventsClient.getEvent(eventRequest, streamObserver);
+        try {
+            streamObserver.awaitResult(2);
+        } finally {
+            blackhole.consume(eventRequest);
+            blackhole.consume(streamObserver);
+        }
+    }
+
+    private static class WaitingStreamObserver implements StreamObserver<Event> {
+
+        private final Blackhole blackhole;
+        private final CountDownLatch countDownLatch;
+
+        private Exception matchbookSDKException;
+
+        private WaitingStreamObserver(Blackhole blackhole) {
+            this.blackhole = blackhole;
+            countDownLatch = new CountDownLatch(1);
+        }
+
+        private void awaitResult(int timeoutSeconds) {
+            try {
+                countDownLatch.await(timeoutSeconds, SECONDS);
+                if (matchbookSDKException != null) {
+                    throw new RuntimeException(matchbookSDKException);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void onNext(Event event) {
+            blackhole.consume(event);
+        }
+
+        @Override
+        public void onCompleted() {
+            countDownLatch.countDown();
+        }
+
+        @Override
+        public <E extends MatchbookSDKException> void onError(E matchbookSDKException) {
+            this.matchbookSDKException = matchbookSDKException;
+            countDownLatch.countDown();
+        }
+    }
+
+}
