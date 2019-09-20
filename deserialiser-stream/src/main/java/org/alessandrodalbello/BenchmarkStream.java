@@ -3,7 +3,6 @@ package org.alessandrodalbello;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.concurrent.CountDownLatch;
@@ -12,6 +11,7 @@ import com.matchbook.sdk.core.StreamObserver;
 import com.matchbook.sdk.core.exceptions.MatchbookSDKException;
 import com.matchbook.sdk.rest.dtos.events.Event;
 import com.matchbook.sdk.rest.dtos.events.EventRequest;
+import com.matchbook.sdk.rest.dtos.events.EventsRequest;
 import org.eclipse.jetty.http.HttpStatus;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -23,9 +23,9 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
 @Fork(value = 1, warmups = 0)
-@Warmup(iterations = 0)
-@Measurement(iterations = 1)
-@OutputTimeUnit(MILLISECONDS)
+@Warmup(iterations = 2, time = 5, timeUnit = SECONDS)
+@Measurement(iterations = 2, time = 5, timeUnit = SECONDS)
+@OutputTimeUnit(SECONDS)
 public class BenchmarkStream {
 
     @Benchmark
@@ -44,6 +44,26 @@ public class BenchmarkStream {
             streamObserver.awaitResult(2);
         } finally {
             blackhole.consume(eventRequest);
+            blackhole.consume(streamObserver);
+        }
+    }
+
+    @Benchmark
+    @BenchmarkMode(Mode.Throughput)
+    public void get20EventsWithoutPrices(ExecutionPlanStream executionPlan, Blackhole blackhole) {
+        executionPlan.wireMockServer.stubFor(get(urlPathEqualTo("/edge/rest/events"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK_200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBodyFile("20_events_without_prices.json")));
+
+        EventsRequest eventsRequest = new EventsRequest.Builder().build();
+        WaitingStreamObserver streamObserver = new WaitingStreamObserver(blackhole);
+        executionPlan.eventsClient.getEvents(eventsRequest, streamObserver);
+        try {
+            streamObserver.awaitResult(2);
+        } finally {
+            blackhole.consume(eventsRequest);
             blackhole.consume(streamObserver);
         }
     }
