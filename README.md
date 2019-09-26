@@ -50,14 +50,14 @@ Objects mapper deserialisation:
 Stream deserialisation:
 ```text
                                  (response)  (waitCompletion)  Mode  Cnt   Score   Error  Units
-                               1_event.json              true  avgt   20   1,502 ± 0,131  ms/op
-                               1_event.json             false  avgt   20   1,524 ± 0,139  ms/op
-              20_events_without_prices.json              true  avgt   20   5,513 ± 0,583  ms/op
-              20_events_without_prices.json             false  avgt   20   3,640 ± 0,265  ms/op
-                 20_events_with_prices.json              true  avgt   20  10,838 ± 0,472  ms/op
-                 20_events_with_prices.json             false  avgt   20   7,479 ± 0,320  ms/op
-50_events_with_participants_and_prices.json              true  avgt   20  30,711 ± 0,398  ms/op
-50_events_with_participants_and_prices.json             false  avgt   20  11,391 ± 0,075  ms/op
+                               1_event.json              true  avgt   20   1,488 ± 0,100  ms/op
+                               1_event.json             false  avgt   20   1,472 ± 0,117  ms/op
+              20_events_without_prices.json              true  avgt   20   5,560 ± 0,552  ms/op
+              20_events_without_prices.json             false  avgt   20   3,706 ± 0,248  ms/op
+                 20_events_with_prices.json              true  avgt   20  10,783 ± 0,420  ms/op
+                 20_events_with_prices.json             false  avgt   20   7,346 ± 0,353  ms/op
+50_events_with_participants_and_prices.json              true  avgt   20  30,865 ± 0,399  ms/op
+50_events_with_participants_and_prices.json             false  avgt   20  11,565 ± 0,086  ms/op
 ```
 
 Unsurprisingly, there is no time difference in getting the first bunch of data or the full response in the objects
