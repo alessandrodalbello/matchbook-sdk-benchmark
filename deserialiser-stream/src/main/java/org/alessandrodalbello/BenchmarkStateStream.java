@@ -33,6 +33,7 @@ public class BenchmarkStateStream {
     WaitStreamObserver streamObserver;
 
     private WireMockServer wireMockServer;
+    private ConnectionManager connectionManager;
 
     @Param({
             "1_event.json",
@@ -64,8 +65,8 @@ public class BenchmarkStateStream {
                 .sportsUrl("http://localhost:8080/edge/rest")
                 .loginUrl("http://localhost:8080/bpapi/rest/security/session")
                 .build();
-        ConnectionManager connectionManager = new ConnectionManager.Builder(clientConfig)
-                .sessionAutoManage(false)
+        connectionManager = new ConnectionManager.Builder(clientConfig)
+                .autoManageSession(false)
                 .build();
         eventsClient = new EventsClientRest(connectionManager);
         eventsRequest = new EventsRequest.Builder().build();
@@ -73,6 +74,7 @@ public class BenchmarkStateStream {
 
     @TearDown(Level.Trial)
     public void tearDownBenchmark() {
+        connectionManager.close();
         wireMockServer.shutdown();
     }
 
