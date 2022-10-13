@@ -66,7 +66,7 @@
         <wiremock.version>2.24.1</wiremock.version>
 
         <!-- Matchbook SDK dependencies -->
-        <jackson.version>2.10.0</jackson.version>
+        <jackson.version>2.12.6.1</jackson.version>
         <okhttp.version>4.2.0</okhttp.version>
         <slf4j.version>1.7.26</slf4j.version>
     </properties>
