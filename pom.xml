@@ -67,7 +67,7 @@
 
         <!-- Matchbook SDK dependencies -->
         <jackson.version>2.15.0</jackson.version>
-        <okhttp.version>4.2.0</okhttp.version>
+        <okhttp.version>4.9.2</okhttp.version>
         <slf4j.version>1.7.26</slf4j.version>
     </properties>
 
